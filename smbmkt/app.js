@@ -12,6 +12,9 @@ const biz = require('./modules/biz');
 const sql = require('./modules/sql');
 const start = require('./modules/start')
 
+var credentials = null;
+var vcap = null;
+
 /* Configure Redis */
 console.log("Configuring redis")
 
