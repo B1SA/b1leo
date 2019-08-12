@@ -14,16 +14,43 @@ const start = require('./modules/start')
 
 /* Configure Redis */
 console.log("Configuring redis")
-var credentials = null;
-var vcap = null;
+
+//Check where the Redis instance will come from. 
+//From CF BackingServiecs, OR a Remote Host OR a local (credentials = null)
 if (process.env.VCAP_SERVICES) {
-    credentials = {}
     vcap = JSON.parse(process.env.VCAP_SERVICES);
-    credentials = vcap['redis'][0].credentials;
-    credentials.host = credentials.hostname
-    console.log("Redis credentials found in VCAP")
+
+    if (vcap.hasOwnProperty('redis')) {
+        credentials = vcap.redis[0].credentials;
+        credentials.host = credentials.hostname
+        console.log("Redis credentials found in VCAP")
+    } else {
+        console.log("No Redis found in VCAP Services")
+    }
 };
+
+if (!credentials) {
+    //Maybe Redis is on a remote enviroment
+    console.log("Looking for remote Redis connection details")
+    if (process.env.REDIS_HOST) {
+        console.log("trying to connect to Redis on " + process.env.REDIS_HOST)
+        credentials = {
+            host: process.env.REDIS_HOST,
+            port: process.env.REDIS_PORT,
+            password: process.env.REDIS_PASSWORD,
+
+        }
+    } else {
+        console.log("No remote Redis details found, will try to connect locally")
+    }
+}
+
 var redisClient = redis.createClient(credentials);
+redisClient.on('error', function (er) {
+    console.trace('Here I am');
+    console.error(er.stack);
+});
+
 redisClient.on('connect', function () {
     console.log("Connected to Redis")
     biz.setClient(redisClient)
@@ -31,10 +58,43 @@ redisClient.on('connect', function () {
 
 /* Configure PostgreSQL */
 credentials = null;
-if (vcap) {
-    credentials = { connectionString: vcap.postgresql[0].credentials.uri }
-    console.log("Postgree credentials found in VCAP")
-};
+
+//Check where the PostgreSQL instance will come from. 
+//From CF Backing Services, OR a Remote Host OR a local PG (credentials = null)
+console.log("Connecting to PostgresSQL...")
+if (process.env.VCAP_SERVICES) {
+    vcap = JSON.parse(process.env.VCAP_SERVICES);
+
+    if (vcap.hasOwnProperty('postgresql')) {
+        //Postgresql on CloudFoundry services
+        credentials = {
+            connectionString: vcap.postgresql[0].credentials.uri
+        }
+        console.log("PostgresSQL found in VCAP Services")
+    } else {
+        console.log("No PostgresSQL found in VCAP Services")
+    }
+}
+
+if (!credentials) {
+    //Maybe PostgreSQL on a remote enviroment
+    console.log("Looking for remote PostgresSQL connection details")
+    if (process.env.PG_HOST) {
+        console.log("trying to connect to PostgreSQL on " + process.env.PG_HOST)
+        credentials = {
+            user: process.env.PG_USER,
+            host: process.env.PG_HOST,
+            port: process.env.PG_PORT,
+            database: process.env.PG_DATABASE,
+            password: process.env.PG_PASSWORD,
+            ssl: true
+        }
+    } else {
+        console.log("No remote PostreSQL details found, will try to connect locally")
+    }
+}
+
+
 var pgClient = new pg.Client(credentials)
 pgClient.connect(function (err) {
     if (err) {
