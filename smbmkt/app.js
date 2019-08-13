@@ -162,6 +162,21 @@ app.get('/SelectDB', function (req, res) {
         res.send(response)
     })
 });
+
+app.delete('/CleanDB', function (req, res) {
+
+    console.log("Clean ALL Items")
+    sql.Clean(function (err, resp) {
+        res.setHeader('Content-Type', 'application/json')
+        if (err) {
+            res.status(500).send(resp)
+        } else {
+            console.dir(resp);
+            res.status(200).send(resp)
+        }
+    });
+});
+
 app.post('/Initialize', function (req, res) {
     console.log("POST REQUEST: Initialize System")
     start.Initialize();
