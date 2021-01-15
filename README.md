@@ -1,4 +1,4 @@
-# SMB Marketplace
+# SMB Marketplace [ARCHIVED]
 [![SAP](https://i.imgur.com/S8BS6PX.png)](https://sap.com)
 
 *A SMB Shop Assistant to integrate SAP Business One, SAP Business ByDesign and SAP Leonardo on SAP Cloud Platform. [See how is works here](https://www.youtube.com/watch?v=M3puey2iw30) and get more details [in this blog](https://blogs.sap.com/2018/05/24/digital-transformation-for-smbs-the-intelligent-enterprise)*
